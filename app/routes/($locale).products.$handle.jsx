@@ -8,7 +8,7 @@ import {
   useSelectedOptionInUrlParam,
 } from '@shopify/hydrogen';
 import {ProductPrice} from '~/components/ProductPrice';
-import {ProductImage} from '~/components/ProductImage';
+import {ProductGallery} from '~/components/ProductGallery';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 
@@ -93,6 +93,8 @@ export default function Product() {
     getAdjacentAndFirstAvailableVariants(product),
   );
 
+  // console.log(selectedVariant);
+
   // Sets the search param to the selected variant without navigation
   // only when no search params are set in the url
   useSelectedOptionInUrlParam(selectedVariant.selectedOptions);
@@ -107,7 +109,12 @@ export default function Product() {
 
   return (
     <div className="product">
-      <ProductImage image={selectedVariant?.image} />
+      <ProductGallery
+        fallbackImage={product.featuredImage}
+        media={product.media?.nodes}
+        selectedVariantImage={selectedVariant?.image}
+        title={product.title}
+      />
       <div className="product-main">
         <h1>{title}</h1>
         <ProductPrice
@@ -118,6 +125,7 @@ export default function Product() {
         <ProductForm
           productOptions={productOptions}
           selectedVariant={selectedVariant}
+          fallbackImage={product.featuredImage}
         />
         <br />
         <br />
@@ -184,6 +192,44 @@ const PRODUCT_VARIANT_FRAGMENT = `#graphql
   }
 `;
 
+const PRODUCT_MEDIA_FRAGMENT = `#graphql
+  fragment ProductMedia on Media {
+    __typename
+    id
+    alt
+    mediaContentType
+    previewImage {
+      id
+      url
+      altText
+      width
+      height
+    }
+    ... on MediaImage {
+      image {
+        id
+        url
+        altText
+        width
+        height
+      }
+    }
+    ... on Video {
+      sources {
+        url
+        mimeType
+        format
+        width
+        height
+      }
+    }
+    ... on ExternalVideo {
+      embedUrl
+      host
+    }
+  }
+`;
+
 const PRODUCT_FRAGMENT = `#graphql
   fragment Product on Product {
     id
@@ -192,6 +238,18 @@ const PRODUCT_FRAGMENT = `#graphql
     handle
     descriptionHtml
     description
+    featuredImage {
+      id
+      url
+      altText
+      width
+      height
+    }
+    media(first: 20) {
+      nodes {
+        ...ProductMedia
+      }
+    }
     encodedVariantExistence
     encodedVariantAvailability
     options {
@@ -206,6 +264,7 @@ const PRODUCT_FRAGMENT = `#graphql
           image {
             previewImage {
               url
+              altText
             }
           }
         }
@@ -223,6 +282,7 @@ const PRODUCT_FRAGMENT = `#graphql
     }
   }
   ${PRODUCT_VARIANT_FRAGMENT}
+  ${PRODUCT_MEDIA_FRAGMENT}
 `;
 
 const PRODUCT_QUERY = `#graphql

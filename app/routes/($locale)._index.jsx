@@ -4,6 +4,9 @@ import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import {MockShopNotice} from '~/components/MockShopNotice';
 
+// Best Sellers collection id, taken from the Shopify admin
+const bestSellerId = 'gid://shopify/Collection/518303449377';
+
 /**
  * @type {Route.MetaFunction}
  */
@@ -49,7 +52,9 @@ async function loadCriticalData({context}) {
  */
 function loadDeferredData({context}) {
   const recommendedProducts = context.storefront
-    .query(RECOMMENDED_PRODUCTS_QUERY)
+    .query(RECOMMENDED_PRODUCTS_QUERY, {
+      variables: {collectionId: bestSellerId},
+    })
     .catch((error) => {
       // Log query errors, but don't throw them so the page can still render
       console.error(error);
@@ -116,8 +121,8 @@ function RecommendedProducts({products}) {
         <Await resolve={products}>
           {(response) => (
             <div className="recommended-products-grid">
-              {response
-                ? response.products.nodes.map((product) => (
+              {response?.collection
+                ? response.collection.products.nodes.map((product) => (
                     <ProductItem key={product.id} product={product} />
                   ))
                 : null}
@@ -129,7 +134,6 @@ function RecommendedProducts({products}) {
     </section>
   );
 }
-
 const FEATURED_COLLECTION_QUERY = `#graphql
   fragment FeaturedCollection on Collection {
     id
@@ -154,17 +158,25 @@ const FEATURED_COLLECTION_QUERY = `#graphql
 `;
 
 const RECOMMENDED_PRODUCTS_QUERY = `#graphql
-  fragment RecommendedProduct on Product {
-    id
-    title
-    handle
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
+fragment RecommendedProduct on Product {
+  id
+  title
+  handle
+  priceRange {
+    minVariantPrice {
+      amount
+      currencyCode
     }
-    featuredImage {
+  }
+  featuredImage {
+    id
+    url
+    altText
+    width
+    height
+  }
+  images(first: 2) {
+    nodes {
       id
       url
       altText
@@ -172,14 +184,32 @@ const RECOMMENDED_PRODUCTS_QUERY = `#graphql
       height
     }
   }
-  query RecommendedProducts ($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    products(first: 4, sortKey: UPDATED_AT, reverse: true) {
+  selectedOrFirstAvailableVariant(
+    selectedOptions: []
+    ignoreUnknownOptions: true
+    caseInsensitiveMatch: true
+  ) {
+    id
+    title
+    availableForSale
+  }
+}
+
+query RecommendedProducts(
+  $country: CountryCode
+  $language: LanguageCode
+  $collectionId: ID!
+) @inContext(country: $country, language: $language) {
+  collection(id: $collectionId) {
+    id
+    title
+    products(first: 12, sortKey: BEST_SELLING) {
       nodes {
         ...RecommendedProduct
       }
     }
   }
+}
 `;
 
 /** @typedef {import('./+types/_index').Route} Route */
