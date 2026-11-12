@@ -18,7 +18,7 @@ const SLIDE = 'basis-[72%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4';
  */
 export function NewArrivals({products}) {
   return (
-    <section aria-labelledby="new-arrivals-heading" className="py-12 md:py-16">
+    <section aria-labelledby="new-arrivals-heading" className="py-10 md:py-12">
       <Carousel aria-label="New arrivals" opts={{align: 'start'}}>
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -73,10 +73,7 @@ function NewArrivalsSkeleton() {
     <div aria-busy="true" className="flex gap-4 overflow-hidden">
       <span className="sr-only">Loading new arrivals</span>
       {Array.from({length: 4}, (_, index) => (
-        <div
-          className={`min-w-0 shrink-0 grow-0 ${SLIDE}`}
-          key={index}
-        >
+        <div className={`min-w-0 shrink-0 grow-0 ${SLIDE}`} key={index}>
           <ProductCardSkeleton />
         </div>
       ))}

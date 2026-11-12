@@ -64,8 +64,9 @@ function Shapes({onReady}) {
   const maxAnisotropy = useThree((state) =>
     Math.min(4, state.gl.capabilities.getMaxAnisotropy()),
   );
-  // The layout is designed for a 6.3 unit square; shrink to fit narrower canvases.
-  const scale = Math.min(1, viewport.width / 6.3, viewport.height / 6.3);
+  // The layout needs about a 6.8 unit square including drift; shrink to fit
+  // smaller canvases.
+  const scale = Math.min(1, viewport.width / 6.8, viewport.height / 6.8);
 
   const textures = useMemo(() => {
     const c = readBrandColors();
@@ -80,6 +81,7 @@ function Shapes({onReady}) {
       appleCube: prepare(argyleTexture(c.apple, c.punch, c.paper, [1.4, 1])),
       inkCube: prepare(argyleTexture(c.ink, c.indigo, c.sun, [2.4, 1.7])),
       court: c.court,
+      sun: c.sun,
     };
   }, [maxAnisotropy]);
 
@@ -138,7 +140,22 @@ function Shapes({onReady}) {
       <Drift phase={3.1} position={[1.75, 1.95, -0.4]} range={0.22} spin={0.1}>
         <mesh rotation={[1.1, 0.25, 0.35]}>
           <cylinderGeometry args={[0.9, 0.9, 0.22, 48]} />
-          <meshStandardMaterial map={textures.disc} roughness={0.6} />
+          {/* Plain rim, dotted faces: the pattern would smear around the edge. */}
+          <meshStandardMaterial
+            attach="material-0"
+            color={textures.sun}
+            roughness={0.6}
+          />
+          <meshStandardMaterial
+            attach="material-1"
+            map={textures.disc}
+            roughness={0.6}
+          />
+          <meshStandardMaterial
+            attach="material-2"
+            map={textures.disc}
+            roughness={0.6}
+          />
         </mesh>
       </Drift>
 

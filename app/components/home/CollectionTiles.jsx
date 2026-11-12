@@ -7,7 +7,7 @@ import {Link} from '~/components/Link';
  */
 export function CollectionTiles({collections}) {
   return (
-    <section aria-labelledby="collections-heading" className="py-12 md:py-16">
+    <section aria-labelledby="collections-heading" className="py-10 md:py-12">
       <div className="mb-6 flex items-end justify-between gap-4">
         <h2
           className="m-0 text-2xl leading-tight font-bold tracking-tight md:text-3xl"
