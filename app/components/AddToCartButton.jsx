@@ -1,4 +1,5 @@
 import {CartForm} from '@shopify/hydrogen';
+import {useLocalizedPath} from '~/lib/i18n';
 
 /**
  * @param {{
@@ -16,8 +17,13 @@ export function AddToCartButton({
   lines,
   onClick,
 }) {
+  const localize = useLocalizedPath();
   return (
-    <CartForm route="/cart" inputs={{lines}} action={CartForm.ACTIONS.LinesAdd}>
+    <CartForm
+      route={localize('/cart')}
+      inputs={{lines}}
+      action={CartForm.ACTIONS.LinesAdd}
+    >
       {(fetcher) => (
         <>
           <input

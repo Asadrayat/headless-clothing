@@ -1,10 +1,12 @@
-import {Link, useLoaderData} from 'react-router';
+import {useLoaderData} from 'react-router';
+import {Link} from '~/components/Link';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.policy.title ?? ''}`}];
+export const meta = ({data, matches}) => {
+  return [{title: pageTitle(matches, data?.policy.title)}];
 };
 
 /**

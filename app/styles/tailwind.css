@@ -1,6 +1,166 @@
 /**
- * Configure Tailwind v4 in this file using CSS variables and directives:
- * https://tailwindcss.com/docs/v4-beta#css-first-configuration
+ * Tailwind v4, configured CSS-first: https://tailwindcss.com/docs/theme
+ *
+ * New and rebuilt components style themselves with utilities. app.css still
+ * holds the skeleton's styles and is migrated piece by piece; because it is
+ * unlayered, its rules beat utilities on the same element, so delete a
+ * component's app.css block when moving it to utilities.
  */
-
 @import 'tailwindcss';
+
+/*
+ * Brand tokens. Each becomes a utility (bg-ink, text-muted, border-line…) and
+ * a CSS variable (var(--color-ink)) that app.css can use too. `static` keeps
+ * the variables in the output even when no utility references them yet.
+ * Swap these values for the final brand palette and typeface.
+ */
+@theme static {
+  --color-ink: #1b2236; /* indigo-black: body text, footer */
+  --color-paper: #ffffff; /* page background */
+  --color-mist: #f3f4f7; /* quiet fills */
+  --color-line: #dadde4; /* hairlines and dividers */
+  --color-muted: #5e6678; /* secondary text */
+  --color-indigo: #2e3f9e; /* accent: active links, focus, cart count */
+
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/*
+ * Element defaults, formerly reset.css. Kept in the base layer so utilities
+ * can override them.
+ */
+@layer base {
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  body > main {
+    margin: 0 1rem 1rem 1rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-indigo);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+
+  h4 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  h5 {
+    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  hr {
+    border-bottom: none;
+    border-top: 1px solid var(--color-ink);
+    margin: 0;
+  }
+
+  pre {
+    white-space: pre-wrap;
+  }
+
+  section {
+    padding: 1rem 0;
+    @media (min-width: 768px) {
+      padding: 2rem 0;
+    }
+  }
+
+  fieldset {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+  }
+
+  form {
+    max-width: 100%;
+    @media (min-width: 768px) {
+      max-width: 400px;
+    }
+  }
+
+  input {
+    border-radius: 4px;
+    border: 1px solid var(--color-ink);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  legend {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+
+  dl {
+    margin: 0.5rem 0;
+  }
+
+  code {
+    background: var(--color-mist);
+    border-radius: 4px;
+    font-family: monospace;
+    padding: 0.25rem;
+  }
+}

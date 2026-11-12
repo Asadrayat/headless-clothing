@@ -1,6 +1,7 @@
 import {CartForm, Image} from '@shopify/hydrogen';
+import {useLocalizedPath} from '~/lib/i18n';
 import {useVariantUrl} from '~/lib/variants';
-import {Link} from 'react-router';
+import {Link} from '~/components/Link';
 import {ProductPrice} from './ProductPrice';
 import {useAside} from './Aside';
 
@@ -138,10 +139,11 @@ function CartLineQuantity({line}) {
  * }}
  */
 function CartLineRemoveButton({lineIds, disabled}) {
+  const localize = useLocalizedPath();
   return (
     <CartForm
       fetcherKey={getUpdateKey(lineIds)}
-      route="/cart"
+      route={localize('/cart')}
       action={CartForm.ACTIONS.LinesRemove}
       inputs={{lineIds}}
     >
@@ -159,12 +161,13 @@ function CartLineRemoveButton({lineIds, disabled}) {
  * }}
  */
 function CartLineUpdateButton({children, lines}) {
+  const localize = useLocalizedPath();
   const lineIds = lines.map((line) => line.id);
 
   return (
     <CartForm
       fetcherKey={getUpdateKey(lineIds)}
-      route="/cart"
+      route={localize('/cart')}
       action={CartForm.ACTIONS.LinesUpdate}
       inputs={{lines}}
     >

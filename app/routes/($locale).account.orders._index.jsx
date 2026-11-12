@@ -1,9 +1,5 @@
-import {
-  Link,
-  useLoaderData,
-  useNavigation,
-  useSearchParams,
-} from 'react-router';
+import {useLoaderData, useNavigation, useSearchParams} from 'react-router';
+import {Link} from '~/components/Link';
 import {useRef} from 'react';
 import {
   Money,
@@ -17,12 +13,13 @@ import {
 } from '~/lib/orderFilters';
 import {CUSTOMER_ORDERS_QUERY} from '~/graphql/customer-account/CustomerOrdersQuery';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
-  return [{title: 'Orders'}];
+export const meta = ({matches}) => {
+  return [{title: pageTitle(matches, 'Orders')}];
 };
 
 /**
@@ -121,7 +118,7 @@ function EmptyOrders({hasFilters = false}) {
  * }}
  */
 function OrderSearchForm({currentFilters}) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isSearching =
     navigation.state !== 'idle' &&

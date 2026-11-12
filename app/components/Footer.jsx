@@ -1,26 +1,40 @@
 import {Suspense} from 'react';
-import {Await, NavLink} from 'react-router';
+import {Await} from 'react-router';
+import {NavLink} from '~/components/Link';
 
 /**
  * @param {FooterProps}
  */
 export function Footer({footer: footerPromise, header, publicStoreDomain}) {
+  const shopName = header?.shop?.name;
+
   return (
-    <Suspense>
-      <Await resolve={footerPromise}>
-        {(footer) => (
-          <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
-              <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
-                publicStoreDomain={publicStoreDomain}
-              />
-            )}
-          </footer>
+    <footer className="mt-auto bg-ink text-paper">
+      <div className="flex flex-col gap-6 px-4 py-10 md:flex-row md:items-start md:justify-between">
+        {shopName && (
+          <p className="text-lg font-semibold tracking-tight">{shopName}</p>
         )}
-      </Await>
-    </Suspense>
+        {/* The footer menu is deferred, so the shell renders without it first */}
+        <Suspense>
+          <Await resolve={footerPromise}>
+            {(footer) =>
+              footer?.menu && header.shop.primaryDomain?.url ? (
+                <FooterMenu
+                  menu={footer.menu}
+                  primaryDomainUrl={header.shop.primaryDomain.url}
+                  publicStoreDomain={publicStoreDomain}
+                />
+              ) : null
+            }
+          </Await>
+        </Suspense>
+      </div>
+      {shopName && (
+        <p className="border-t border-paper/15 px-4 py-4 text-xs text-paper/70">
+          © {new Date().getFullYear()} {shopName}
+        </p>
+      )}
+    </footer>
   );
 }
 
@@ -33,7 +47,10 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
  */
 function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
   return (
-    <nav className="footer-menu" role="navigation">
+    <nav
+      aria-label="Footer"
+      className="flex flex-wrap gap-x-6 gap-y-3 text-sm md:max-w-xl md:justify-end"
+    >
       {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
@@ -45,15 +62,21 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
             : item.url;
         const isExternal = !url.startsWith('/');
         return isExternal ? (
-          <a href={url} key={item.id} rel="noopener noreferrer" target="_blank">
+          <a
+            className={footerLinkClassName({isActive: false})}
+            href={url}
+            key={item.id}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             {item.title}
           </a>
         ) : (
           <NavLink
+            className={footerLinkClassName}
             end
             key={item.id}
             prefetch="intent"
-            style={activeLinkStyle}
             to={url}
           >
             {item.title}
@@ -62,6 +85,17 @@ function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
       })}
     </nav>
   );
+}
+
+/**
+ * @param {{isActive: boolean; isPending?: boolean}}
+ */
+function footerLinkClassName({isActive, isPending}) {
+  return [
+    'decoration-1 underline-offset-4',
+    isActive ? 'text-paper underline' : 'text-paper/75 hover:text-paper',
+    isPending ? 'opacity-60' : '',
+  ].join(' ');
 }
 
 const FALLBACK_FOOTER_MENU = {
@@ -105,19 +139,6 @@ const FALLBACK_FOOTER_MENU = {
     },
   ],
 };
-
-/**
- * @param {{
- *   isActive: boolean;
- *   isPending: boolean;
- * }}
- */
-function activeLinkStyle({isActive, isPending}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
-}
 
 /**
  * @typedef {Object} FooterProps

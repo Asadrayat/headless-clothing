@@ -1,6 +1,7 @@
-import {Link, useFetcher} from 'react-router';
+import {useFetcher} from 'react-router';
+import {Link} from '~/components/Link';
 import {Image, Money} from '@shopify/hydrogen';
-import React, {useRef, useEffect} from 'react';
+import {useRef, useEffect} from 'react';
 import {
   getEmptyPredictiveSearchResult,
   urlWithTrackingParams,

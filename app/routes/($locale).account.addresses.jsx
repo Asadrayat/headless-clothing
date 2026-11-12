@@ -10,12 +10,13 @@ import {
   DELETE_ADDRESS_MUTATION,
   CREATE_ADDRESS_MUTATION,
 } from '~/graphql/customer-account/CustomerAddressMutations';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
-  return [{title: 'Addresses'}];
+export const meta = ({matches}) => {
+  return [{title: pageTitle(matches, 'Addresses')}];
 };
 
 /**

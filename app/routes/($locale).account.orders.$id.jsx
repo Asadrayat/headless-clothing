@@ -1,12 +1,14 @@
 import {redirect, useLoaderData} from 'react-router';
+import {localizePath} from '~/lib/i18n';
 import {Money, Image} from '@shopify/hydrogen';
 import {CUSTOMER_ORDER_QUERY} from '~/graphql/customer-account/CustomerOrderQuery';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Order ${data?.order?.name}`}];
+export const meta = ({data, matches}) => {
+  return [{title: pageTitle(matches, `Order ${data?.order?.name ?? ''}`)}];
 };
 
 /**
@@ -15,7 +17,9 @@ export const meta = ({data}) => {
 export async function loader({params, context}) {
   const {customerAccount} = context;
   if (!params.id) {
-    return redirect('/account/orders');
+    return redirect(
+      localizePath('/account/orders', context.storefront.i18n.pathPrefix),
+    );
   }
 
   const orderId = atob(params.id);

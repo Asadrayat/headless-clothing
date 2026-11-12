@@ -1,4 +1,5 @@
-import {useLoaderData, Link} from 'react-router';
+import {useLoaderData} from 'react-router';
+import {Link} from '~/components/Link';
 import {getPaginationVariables, Image} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 
@@ -41,7 +42,7 @@ async function loadCriticalData({context, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 

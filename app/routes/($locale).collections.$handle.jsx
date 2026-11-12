@@ -1,14 +1,16 @@
 import {redirect, useLoaderData} from 'react-router';
+import {localizePath} from '~/lib/i18n';
 import {getPaginationVariables, Analytics} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
 import {ProductItem} from '~/components/ProductItem';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.collection.title ?? ''} Collection`}];
+export const meta = ({data, matches}) => {
+  return [{title: pageTitle(matches, data?.collection.title)}];
 };
 
 /**
@@ -37,7 +39,9 @@ async function loadCriticalData({context, params, request}) {
   });
 
   if (!handle) {
-    throw redirect('/collections');
+    throw redirect(
+      localizePath('/collections', context.storefront.i18n.pathPrefix),
+    );
   }
 
   const [{collection}] = await Promise.all([
@@ -67,7 +71,7 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -118,6 +122,16 @@ const PRODUCT_ITEM_FRAGMENT = `#graphql
       url
       width
       height
+    }
+    # The second image is swapped in on hover by ProductItem
+    images(first: 2) {
+      nodes {
+        id
+        altText
+        url
+        width
+        height
+      }
     }
     priceRange {
       minVariantPrice {

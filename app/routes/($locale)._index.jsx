@@ -1,8 +1,10 @@
-import {Await, useLoaderData, Link} from 'react-router';
+import {Await, useLoaderData} from 'react-router';
+import {Link} from '~/components/Link';
 import {Suspense} from 'react';
 import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
 import {MockShopNotice} from '~/components/MockShopNotice';
+import {pageTitle} from '~/lib/meta';
 
 // Best Sellers collection id, taken from the Shopify admin
 const bestSellerId = 'gid://shopify/Collection/518303449377';
@@ -10,8 +12,8 @@ const bestSellerId = 'gid://shopify/Collection/518303449377';
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
+export const meta = ({matches}) => {
+  return [{title: pageTitle(matches)}];
 };
 
 /**

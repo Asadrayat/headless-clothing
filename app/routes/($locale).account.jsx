@@ -1,10 +1,6 @@
-import {
-  data as remixData,
-  Form,
-  NavLink,
-  Outlet,
-  useLoaderData,
-} from 'react-router';
+import {data as remixData, Form, Outlet, useLoaderData} from 'react-router';
+import {NavLink} from '~/components/Link';
+import {useLocalizedPath} from '~/lib/i18n';
 import {CUSTOMER_DETAILS_QUERY} from '~/graphql/customer-account/CustomerDetailsQuery';
 
 export function shouldRevalidate() {
@@ -86,8 +82,13 @@ function AccountMenu() {
 }
 
 function Logout() {
+  const localize = useLocalizedPath();
   return (
-    <Form className="account-logout" method="POST" action="/account/logout">
+    <Form
+      className="account-logout"
+      method="POST"
+      action={localize('/account/logout')}
+    >
       &nbsp;<button type="submit">Sign out</button>
     </Form>
   );
