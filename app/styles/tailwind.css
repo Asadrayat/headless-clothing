@@ -15,12 +15,21 @@
  * Swap these values for the final brand palette and typeface.
  */
 @theme static {
-  --color-ink: #1b2236; /* indigo-black: body text, footer */
+  --color-ink: #101b3b; /* club navy: body text, primary buttons, footer */
   --color-paper: #ffffff; /* page background */
-  --color-mist: #f3f4f7; /* quiet fills */
-  --color-line: #dadde4; /* hairlines and dividers */
-  --color-muted: #5e6678; /* secondary text */
-  --color-indigo: #2e3f9e; /* accent: active links, focus, cart count */
+  --color-mist: #f2f5fb; /* quiet fills, hero and card backgrounds */
+  --color-line: #d8deea; /* hairlines and dividers */
+  --color-muted: #55607a; /* secondary text (AA on paper and mist) */
+  --color-indigo: #2740c8; /* bluebelle accent: active links, focus, cart count */
+
+  /*
+   * Pops. Decorative only (prints, 3D shapes, small accents); never use them
+   * for body text, they do not all pass AA on white.
+   */
+  --color-apple: #e0263c; /* candy apple */
+  --color-punch: #ff5d8f; /* fruit punch */
+  --color-sun: #ffc94a; /* tennis-ball warm yellow */
+  --color-court: #1f9d6b; /* court green */
 
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
