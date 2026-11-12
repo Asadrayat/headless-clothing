@@ -6,8 +6,7 @@ import {useVariantUrl} from '~/lib/variants';
  * @param {{
  *   product:
  *     | CollectionItemFragment
- *     | ProductItemFragment
- *     | RecommendedProductFragment;
+ *     | ProductItemFragment;
  *   loading?: 'eager' | 'lazy';
  * }}
  */
@@ -61,4 +60,3 @@ export function ProductItem({product, loading}) {
 
 /** @typedef {import('storefrontapi.generated').ProductItemFragment} ProductItemFragment */
 /** @typedef {import('storefrontapi.generated').CollectionItemFragment} CollectionItemFragment */
-/** @typedef {import('storefrontapi.generated').RecommendedProductFragment} RecommendedProductFragment */

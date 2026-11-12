@@ -7,6 +7,14 @@
  * component's app.css block when moving it to utilities.
  */
 @import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * The storefront is light-only. shadcn components ship `dark:` classes, which
+ * Tailwind would otherwise apply from the OS setting; scope them to a `.dark`
+ * class so they stay off until a dark theme is designed.
+ */
+@custom-variant dark (&:is(.dark *));
 
 /*
  * Brand tokens. Each becomes a utility (bg-ink, text-muted, border-line…) and
@@ -15,12 +23,21 @@
  * Swap these values for the final brand palette and typeface.
  */
 @theme static {
-  --color-ink: #1b2236; /* indigo-black: body text, footer */
+  --color-ink: #101b3b; /* club navy: body text, primary buttons, footer */
   --color-paper: #ffffff; /* page background */
-  --color-mist: #f3f4f7; /* quiet fills */
-  --color-line: #dadde4; /* hairlines and dividers */
-  --color-muted: #5e6678; /* secondary text */
-  --color-indigo: #2e3f9e; /* accent: active links, focus, cart count */
+  --color-mist: #f2f5fb; /* quiet fills, hero and card backgrounds */
+  --color-line: #d8deea; /* hairlines and dividers */
+  --color-muted: #55607a; /* secondary text (AA on paper and mist) */
+  --color-indigo: #2740c8; /* bluebelle accent: active links, focus, cart count */
+
+  /*
+   * Pops. Decorative only (prints, 3D shapes, small accents); never use them
+   * for body text, they do not all pass AA on white.
+   */
+  --color-apple: #e0263c; /* candy apple */
+  --color-punch: #ff5d8f; /* fruit punch */
+  --color-sun: #ffc94a; /* tennis-ball warm yellow */
+  --color-court: #1f9d6b; /* court green */
 
   --font-sans:
     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
@@ -28,10 +45,70 @@
 }
 
 /*
+ * shadcn/ui theme. Its semantic variables point at the brand tokens above, so
+ * retuning a token restyles every shadcn component. Do not hardcode colors
+ * here; add or change a brand token instead.
+ */
+:root {
+  --radius: 0.75rem;
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
+  --card: var(--color-paper);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-paper);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-ink);
+  --primary-foreground: var(--color-paper);
+  --secondary: var(--color-mist);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-mist);
+  --muted-foreground: var(--color-muted);
+  --accent: var(--color-mist);
+  --accent-foreground: var(--color-ink);
+  --destructive: var(--color-apple);
+  --border: var(--color-line);
+  --input: var(--color-line);
+  --ring: var(--color-indigo);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  /* `--color-muted` is the brand token (secondary text); shadcn's quiet fill
+     is `mist`, so only its foreground is mapped here. */
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
  * Element defaults, formerly reset.css. Kept in the base layer so utilities
  * can override them.
  */
 @layer base {
+  /* shadcn components use a bare `border` and expect the hairline color. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
   body {
     background: var(--color-paper);
     color: var(--color-ink);
