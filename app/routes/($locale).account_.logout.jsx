@@ -1,9 +1,10 @@
 import {redirect} from 'react-router';
+import {localizePath} from '~/lib/i18n';
 
 // if we don't implement this, /account/logout will get caught by account.$.tsx to do login
 
-export async function loader() {
-  return redirect('/');
+export async function loader({context}) {
+  return redirect(localizePath('/', context.storefront.i18n.pathPrefix));
 }
 
 /**

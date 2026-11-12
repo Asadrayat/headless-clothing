@@ -1,12 +1,13 @@
 import {useLoaderData} from 'react-router';
 import {Image} from '@shopify/hydrogen';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.article.title ?? ''} article`}];
+export const meta = ({data, matches}) => {
+  return [{title: pageTitle(matches, data?.article.title)}];
 };
 
 /**
@@ -68,7 +69,7 @@ async function loadCriticalData({context, request, params}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 

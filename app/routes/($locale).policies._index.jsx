@@ -1,4 +1,5 @@
-import {useLoaderData, Link} from 'react-router';
+import {useLoaderData} from 'react-router';
+import {Link} from '~/components/Link';
 
 /**
  * @param {Route.LoaderArgs}

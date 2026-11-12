@@ -1,4 +1,5 @@
 import {getSitemap} from '@shopify/hydrogen';
+import {SUPPORTED_LOCALES} from '~/lib/i18n';
 
 /**
  * @param {Route.LoaderArgs}
@@ -8,10 +9,13 @@ export async function loader({request, params, context: {storefront}}) {
     storefront,
     request,
     params,
-    locales: ['EN-US', 'EN-CA', 'FR-CA'],
+    // Alternate-language links for every prefixed (non-default) locale
+    locales: SUPPORTED_LOCALES.filter((locale) => locale.pathPrefix).map(
+      ({language, country}) => `${language}-${country}`,
+    ),
     getLink: ({type, baseUrl, handle, locale}) => {
       if (!locale) return `${baseUrl}/${type}/${handle}`;
-      return `${baseUrl}/${locale}/${type}/${handle}`;
+      return `${baseUrl}/${locale.toLowerCase()}/${type}/${handle}`;
     },
   });
 

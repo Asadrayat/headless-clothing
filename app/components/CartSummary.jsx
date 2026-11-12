@@ -1,4 +1,5 @@
 import {CartForm, Money} from '@shopify/hydrogen';
+import {useLocalizedPath} from '~/lib/i18n';
 import {useEffect, useId, useRef, useState} from 'react';
 import {useFetcher} from 'react-router';
 
@@ -126,9 +127,10 @@ function CartDiscounts({
  * }}
  */
 function UpdateDiscountForm({discountCodes, children}) {
+  const localize = useLocalizedPath();
   return (
     <CartForm
-      route="/cart"
+      route={localize('/cart')}
       action={CartForm.ACTIONS.DiscountCodesUpdate}
       inputs={{
         discountCodes: discountCodes || [],
@@ -254,10 +256,11 @@ function CartGiftCard({giftCardCodes, giftCardHeadingId, giftCardInputId}) {
  * }}
  */
 function AddGiftCardForm({fetcherKey, children}) {
+  const localize = useLocalizedPath();
   return (
     <CartForm
       fetcherKey={fetcherKey}
-      route="/cart"
+      route={localize('/cart')}
       action={CartForm.ACTIONS.GiftCardCodesAdd}
     >
       {children}
@@ -281,9 +284,10 @@ function RemoveGiftCardForm({
   onRemoveClick,
   buttonRef,
 }) {
+  const localize = useLocalizedPath();
   return (
     <CartForm
-      route="/cart"
+      route={localize('/cart')}
       action={CartForm.ACTIONS.GiftCardCodesRemove}
       inputs={{
         giftCardCodes: [giftCardId],

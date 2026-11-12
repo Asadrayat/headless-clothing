@@ -2,12 +2,13 @@ import {useLoaderData} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {ProductItem} from '~/components/ProductItem';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
-  return [{title: `Hydrogen | Products`}];
+export const meta = ({matches}) => {
+  return [{title: pageTitle(matches, 'Products')}];
 };
 
 /**
@@ -49,7 +50,7 @@ async function loadCriticalData({context, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 
@@ -91,6 +92,16 @@ const COLLECTION_ITEM_FRAGMENT = `#graphql
       url
       width
       height
+    }
+    # The second image is swapped in on hover by ProductItem
+    images(first: 2) {
+      nodes {
+        id
+        altText
+        url
+        width
+        height
+      }
     }
     priceRange {
       minVariantPrice {

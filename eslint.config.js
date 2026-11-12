@@ -87,6 +87,19 @@ export default [
       ],
       'no-useless-escape': 'off',
       'no-case-declarations': 'off',
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-router',
+              importNames: ['Link', 'NavLink'],
+              message:
+                'Import Link/NavLink from ~/components/Link so URLs keep the visitor’s locale prefix.',
+            },
+          ],
+        },
+      ],
     },
   },
   ...fixupConfigRules(
@@ -153,7 +166,7 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './jsconfig.json',
         tsconfigRootDir: __dirname,
         ecmaFeatures: {
           jsx: true,
@@ -168,7 +181,7 @@ export default [
         },
         typescript: {
           alwaysTryTypes: true,
-          project: __dirname,
+          project: path.join(__dirname, 'jsconfig.json'),
         },
       },
     },

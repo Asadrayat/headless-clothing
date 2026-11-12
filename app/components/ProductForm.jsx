@@ -1,5 +1,6 @@
-import {useId, useState} from 'react';
-import {Link, useNavigate} from 'react-router';
+import {useEffect, useId, useRef, useState} from 'react';
+import {useNavigate} from 'react-router';
+import {Link} from '~/components/Link';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 
@@ -61,6 +62,22 @@ function ProductOptionSelect({option, fallbackImage}) {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
+  const selectRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  // Escape closes the open panel and hands focus back to its toggle, so focus
+  // isn't stranded on a value button that's about to be hidden.
+  useEffect(() => {
+    if (!expanded) return;
+    function handleKeyDown(event) {
+      if (event.key !== 'Escape') return;
+      if (!selectRef.current?.contains(document.activeElement)) return;
+      setExpanded(false);
+      toggleRef.current?.focus();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [expanded]);
 
   const selectedValue =
     option.optionValues.find((value) => value.selected) ??
@@ -68,13 +85,9 @@ function ProductOptionSelect({option, fallbackImage}) {
 
   return (
     <div className="product-options" key={option.name}>
-      <div
-        className="product-option-select"
-        onKeyDown={(event) => {
-          if (event.key === 'Escape' && expanded) setExpanded(false);
-        }}
-      >
+      <div className="product-option-select" ref={selectRef}>
         <button
+          ref={toggleRef}
           type="button"
           className="product-option-toggle"
           aria-expanded={expanded}

@@ -1,15 +1,16 @@
 /**
+ * Rejects any locale prefix that isn't in `SUPPORTED_LOCALES`. Unknown
+ * prefixes resolve to the default locale (which has no prefix), so a URL that
+ * still carries a prefix here was not a supported locale.
  * @param {LoaderFunctionArgs}
  */
 export async function loader({params, context}) {
-  const {language, country} = context.storefront.i18n;
+  const {pathPrefix} = context.storefront.i18n;
 
   if (
     params.locale &&
-    params.locale.toLowerCase() !== `${language}-${country}`.toLowerCase()
+    `/${params.locale}`.toLowerCase() !== pathPrefix.toLowerCase()
   ) {
-    // If the locale URL param is defined, yet we are still at the default locale
-    // then the locale param must be invalid, send to the 404 page
     throw new Response(null, {status: 404});
   }
 

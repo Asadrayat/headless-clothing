@@ -1,5 +1,6 @@
 import {useLocation} from 'react-router';
 import {useMemo} from 'react';
+import {getLocaleFromPathname} from '~/lib/i18n';
 
 /**
  * @param {string} handle
@@ -32,12 +33,8 @@ export function getVariantUrl({
   searchParams,
   selectedOptions,
 }) {
-  const match = /(\/[a-zA-Z]{2}-[a-zA-Z]{2}\/)/g.exec(pathname);
-  const isLocalePathname = match && match.length > 0;
-
-  const path = isLocalePathname
-    ? `${match[0]}products/${handle}`
-    : `/products/${handle}`;
+  const {pathPrefix} = getLocaleFromPathname(pathname);
+  const path = `${pathPrefix}/products/${handle}`;
 
   selectedOptions?.forEach((option) => {
     searchParams.set(option.name, option.value);

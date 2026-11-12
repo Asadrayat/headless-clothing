@@ -1,4 +1,5 @@
 import {redirect} from 'react-router';
+import {localizePath} from '~/lib/i18n';
 
 /**
  * Automatically creates a new cart based on the URL and redirects straight to checkout.
@@ -22,7 +23,8 @@ import {redirect} from 'react-router';
 export async function loader({request, context, params}) {
   const {cart} = context;
   const {lines} = params;
-  if (!lines) return redirect('/cart');
+  if (!lines)
+    return redirect(localizePath('/cart', context.storefront.i18n.pathPrefix));
   const linesMap = lines.split(',').map((line) => {
     const lineDetails = line.split(':');
     const variantId = lineDetails[0];

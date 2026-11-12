@@ -1,13 +1,15 @@
-import {Link, useLoaderData} from 'react-router';
+import {useLoaderData} from 'react-router';
+import {Link} from '~/components/Link';
 import {Image, getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
-  return [{title: `Hydrogen | ${data?.blog.title ?? ''} blog`}];
+export const meta = ({data, matches}) => {
+  return [{title: pageTitle(matches, data?.blog.title)}];
 };
 
 /**
@@ -62,7 +64,7 @@ async function loadCriticalData({context, request, params}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context}) {
+function loadDeferredData() {
   return {};
 }
 

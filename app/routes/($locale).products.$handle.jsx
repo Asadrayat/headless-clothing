@@ -11,16 +11,21 @@ import {ProductPrice} from '~/components/ProductPrice';
 import {ProductGallery} from '~/components/ProductGallery';
 import {ProductForm} from '~/components/ProductForm';
 import {redirectIfHandleIsLocalized} from '~/lib/redirect';
+import {pageTitle} from '~/lib/meta';
+import {getLocaleFromPathname, localizePath} from '~/lib/i18n';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = ({data}) => {
+export const meta = ({data, matches, location}) => {
+  const {pathPrefix} = getLocaleFromPathname(location.pathname);
   return [
-    {title: `Hydrogen | ${data?.product.title ?? ''}`},
+    {title: pageTitle(matches, data?.product.title)},
     {
+      // Without tagName this renders as an (ignored) <meta> tag
+      tagName: 'link',
       rel: 'canonical',
-      href: `/products/${data?.product.handle}`,
+      href: localizePath(`/products/${data?.product.handle}`, pathPrefix),
     },
   ];
 };
@@ -76,7 +81,7 @@ async function loadCriticalData({context, params, request}) {
  * Make sure to not throw any errors here, as it will cause the page to 500.
  * @param {Route.LoaderArgs}
  */
-function loadDeferredData({context, params}) {
+function loadDeferredData() {
   // Put any API calls that is not critical to be available on first page render
   // For example: product reviews, product recommendations, social feeds.
 

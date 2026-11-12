@@ -6,12 +6,13 @@ import {
   useNavigation,
   useOutletContext,
 } from 'react-router';
+import {pageTitle} from '~/lib/meta';
 
 /**
  * @type {Route.MetaFunction}
  */
-export const meta = () => {
-  return [{title: 'Profile'}];
+export const meta = ({matches}) => {
+  return [{title: pageTitle(matches, 'Profile')}];
 };
 
 /**
