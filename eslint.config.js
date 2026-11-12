@@ -257,4 +257,12 @@ export default [
       'react-hooks/rules-of-hooks': 'off',
     },
   },
+  {
+    // react-three-fiber scenes use three.js props (args, position, map…)
+    // that are not DOM attributes.
+    files: ['app/components/home/HeroScene.jsx'],
+    rules: {
+      'react/no-unknown-property': 'off',
+    },
+  },
 ];
