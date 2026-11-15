@@ -399,42 +399,6 @@ button.reset:hover:not(:has(> *)) {
   margin-bottom: 2rem;
 }
 
-.product-item img {
-  height: auto;
-  width: 100%;
-}
-
-.product-item-media {
-  position: relative;
-  overflow: hidden;
-}
-
-.product-item-image {
-  display: block;
-  transition: opacity 0.25s ease-in-out;
-}
-
-.product-item-image--secondary {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.25s ease-in-out;
-}
-
-.product-item:hover .product-item-image--primary {
-  opacity: 0;
-}
-
-.product-item:hover .product-item-image--secondary {
-  opacity: 1;
-}
-
-.product-item-variant {
-  margin: 0;
-  color: var(--color-dark, #555);
-  font-size: 0.85em;
-}
-
 /*
 * --------------------------------------------------
 * routes/products.$handle.tsx

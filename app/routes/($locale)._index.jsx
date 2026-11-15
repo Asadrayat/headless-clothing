@@ -4,6 +4,7 @@ import {BrandStrip} from '~/components/home/BrandStrip';
 import {CollectionTiles} from '~/components/home/CollectionTiles';
 import {Hero} from '~/components/home/Hero';
 import {ProductCarouselSection} from '~/components/home/ProductCarouselSection';
+import {PRODUCT_CARD_FRAGMENT} from '~/lib/fragments';
 import {localizePath} from '~/lib/i18n';
 import {pageTitle} from '~/lib/meta';
 
@@ -156,7 +157,7 @@ function pickCollections(collections) {
 /**
  * The newest in-stock products. Those with a second image come first so the
  * cards have a hover image; newest-first order is kept within each group.
- * @param {HomeProductFragment[]} products
+ * @param {ProductCardFragment[]} products
  */
 function pickNewArrivals(products) {
   const inStock = products.filter(
@@ -251,47 +252,7 @@ const HOME_COLLECTIONS_QUERY = `#graphql
 `;
 
 const HOME_PRODUCTS_QUERY = `#graphql
-  fragment HomeProduct on Product {
-    id
-    title
-    handle
-    availableForSale
-    priceRange {
-      minVariantPrice {
-        amount
-        currencyCode
-      }
-    }
-    images(first: 2) {
-      nodes {
-        id
-        url
-        altText
-        width
-        height
-      }
-    }
-    options(first: 3) {
-      name
-      optionValues {
-        id
-        name
-        swatch {
-          color
-        }
-        firstSelectableVariant {
-          id
-          image {
-            id
-            url
-            altText
-            width
-            height
-          }
-        }
-      }
-    }
-  }
+  ${PRODUCT_CARD_FRAGMENT}
   query HomeProducts(
     $country: CountryCode
     $language: LanguageCode
@@ -304,7 +265,7 @@ const HOME_PRODUCTS_QUERY = `#graphql
       query: "available_for_sale:true"
     ) {
       nodes {
-        ...HomeProduct
+        ...ProductCard
       }
     }
     spotlight: collection(handle: $spotlightHandle) {
@@ -315,7 +276,7 @@ const HOME_PRODUCTS_QUERY = `#graphql
         filters: [{available: true}]
       ) {
         nodes {
-          ...HomeProduct
+          ...ProductCard
         }
       }
     }
@@ -324,5 +285,5 @@ const HOME_PRODUCTS_QUERY = `#graphql
 
 /** @typedef {import('./+types/_index').Route} Route */
 /** @typedef {import('storefrontapi.generated').HomeCollectionFragment} HomeCollectionFragment */
-/** @typedef {import('storefrontapi.generated').HomeProductFragment} HomeProductFragment */
+/** @typedef {import('storefrontapi.generated').ProductCardFragment} ProductCardFragment */
 /** @typedef {ReturnType<typeof useLoaderData<typeof loader>>} LoaderReturnData */

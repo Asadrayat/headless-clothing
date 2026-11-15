@@ -6,25 +6,36 @@ import {Card, CardContent} from '~/components/ui/card';
 import {Skeleton} from '~/components/ui/skeleton';
 import {isColorOption} from '~/lib/colors';
 import {useVariantUrl} from '~/lib/variants';
+import {QuickAdd} from './QuickAdd';
 
-const IMAGE_SIZES =
+/** Matches a 4/3/2-up grid or carousel; pass `sizes` for other layouts. */
+const DEFAULT_IMAGE_SIZES =
   '(min-width: 1024px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 75vw';
 
 /** Swatches shown before collapsing the rest into a "+N" count. */
 const MAX_SWATCHES = 5;
 
 /**
- * Product card for the homepage: image, hover image (the product's second
- * image), title, color swatches and price.
+ * Product card: image, hover image (the product's second image), title, color
+ * swatches, price and quick add. Query products with `PRODUCT_CARD_FRAGMENT`.
  *
  * Hovering or focusing a swatch previews that color's variant image; clicking
- * it keeps the color and links the card to that variant.
+ * it keeps the color, links the card to that variant and is the color quick
+ * add puts in the cart.
  *
- * The title link is stretched over the whole card so the swatch buttons can
- * sit inside the card without being nested in the link.
- * @param {{product: HomeProductFragment; loading?: 'eager' | 'lazy'}}
+ * The title link is stretched over the whole card so the swatch and cart
+ * buttons can sit inside the card without being nested in the link.
+ * @param {{
+ *   product: ProductCardFragment;
+ *   loading?: 'eager' | 'lazy';
+ *   sizes?: string;
+ * }}
  */
-export function ProductCard({product, loading = 'lazy'}) {
+export function ProductCard({
+  product,
+  loading = 'lazy',
+  sizes = DEFAULT_IMAGE_SIZES,
+}) {
   const colorOption = product.options.find(
     (option) => isColorOption(option.name) && option.optionValues.length > 1,
   );
@@ -63,7 +74,7 @@ export function ProductCard({product, loading = 'lazy'}) {
             data={image}
             key={image.id}
             loading={loading}
-            sizes={IMAGE_SIZES}
+            sizes={sizes}
           />
         ) : null}
         {/* The alternate view belongs to the default color, so hide it while a color is shown. */}
@@ -75,7 +86,7 @@ export function ProductCard({product, loading = 'lazy'}) {
             className="absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-has-[a:focus-visible]:opacity-100 motion-reduce:transition-none"
             data={hoverImage}
             loading="lazy"
-            sizes={IMAGE_SIZES}
+            sizes={sizes}
           />
         ) : null}
       </div>
@@ -97,10 +108,17 @@ export function ProductCard({product, loading = 'lazy'}) {
             selected={selectedColor}
           />
         ) : null}
-        <Money
-          className="mt-auto text-sm text-muted tabular-nums"
-          data={product.priceRange.minVariantPrice}
-        />
+        <div className="mt-auto flex items-center justify-between gap-2">
+          <Money
+            className="text-sm text-muted tabular-nums"
+            data={product.priceRange.minVariantPrice}
+          />
+          <QuickAdd
+            color={selectedColor}
+            colorOption={colorOption}
+            product={product}
+          />
+        </div>
       </CardContent>
     </Card>
   );
@@ -108,7 +126,7 @@ export function ProductCard({product, loading = 'lazy'}) {
 
 /**
  * @param {{
- *   option: HomeProductFragment['options'][number];
+ *   option: ProductCardFragment['options'][number];
  *   selected: string | null;
  *   onSelect: (value: string | null) => void;
  *   onPreview: (value: string | null) => void;
@@ -162,10 +180,13 @@ export function ProductCardSkeleton() {
       <div className="flex flex-col gap-2 px-4 py-4">
         <Skeleton className="h-4 w-4/5" />
         <Skeleton className="h-5 w-1/3 rounded-full" />
-        <Skeleton className="h-4 w-1/4" />
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="size-9 rounded-full" />
+        </div>
       </div>
     </div>
   );
 }
 
-/** @typedef {import('storefrontapi.generated').HomeProductFragment} HomeProductFragment */
+/** @typedef {import('storefrontapi.generated').ProductCardFragment} ProductCardFragment */

@@ -1,8 +1,12 @@
 import {useLoaderData} from 'react-router';
 import {getPaginationVariables} from '@shopify/hydrogen';
 import {PaginatedResourceSection} from '~/components/PaginatedResourceSection';
-import {ProductItem} from '~/components/ProductItem';
+import {ProductCard} from '~/components/product-card/ProductCard';
+import {PRODUCT_CARD_FRAGMENT} from '~/lib/fragments';
 import {pageTitle} from '~/lib/meta';
+
+/** Grid columns are at least 355px wide (--grid-item-width). */
+const GRID_IMAGE_SIZES = '(min-width: 45em) 400px, 100vw';
 
 /**
  * @type {Route.MetaFunction}
@@ -66,53 +70,17 @@ export default function Collection() {
         resourcesClassName="products-grid"
       >
         {({node: product, index}) => (
-          <ProductItem
+          <ProductCard
             key={product.id}
-            product={product}
             loading={index < 8 ? 'eager' : undefined}
+            product={product}
+            sizes={GRID_IMAGE_SIZES}
           />
         )}
       </PaginatedResourceSection>
     </div>
   );
 }
-
-const COLLECTION_ITEM_FRAGMENT = `#graphql
-  fragment MoneyCollectionItem on MoneyV2 {
-    amount
-    currencyCode
-  }
-  fragment CollectionItem on Product {
-    id
-    handle
-    title
-    featuredImage {
-      id
-      altText
-      url
-      width
-      height
-    }
-    # The second image is swapped in on hover by ProductItem
-    images(first: 2) {
-      nodes {
-        id
-        altText
-        url
-        width
-        height
-      }
-    }
-    priceRange {
-      minVariantPrice {
-        ...MoneyCollectionItem
-      }
-      maxVariantPrice {
-        ...MoneyCollectionItem
-      }
-    }
-  }
-`;
 
 // NOTE: https://shopify.dev/docs/api/storefront/latest/objects/product
 const CATALOG_QUERY = `#graphql
@@ -126,7 +94,7 @@ const CATALOG_QUERY = `#graphql
   ) @inContext(country: $country, language: $language) {
     products(first: $first, last: $last, before: $startCursor, after: $endCursor) {
       nodes {
-        ...CollectionItem
+        ...ProductCard
       }
       pageInfo {
         hasPreviousPage
@@ -136,9 +104,8 @@ const CATALOG_QUERY = `#graphql
       }
     }
   }
-  ${COLLECTION_ITEM_FRAGMENT}
+  ${PRODUCT_CARD_FRAGMENT}
 `;
 
 /** @typedef {import('./+types/collections.all').Route} Route */
-/** @typedef {import('storefrontapi.generated').CollectionItemFragment} CollectionItemFragment */
 /** @typedef {ReturnType<typeof useLoaderData<typeof loader>>} LoaderReturnData */

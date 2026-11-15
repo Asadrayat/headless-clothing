@@ -9,7 +9,10 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '~/components/ui/carousel';
-import {ProductCard, ProductCardSkeleton} from './ProductCard';
+import {
+  ProductCard,
+  ProductCardSkeleton,
+} from '~/components/product-card/ProductCard';
 
 const SLIDE = 'basis-[72%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4';
 
@@ -22,7 +25,7 @@ const SLIDE = 'basis-[72%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4';
  * @param {{
  *   title: string;
  *   description?: string;
- *   products: Promise<HomeProductFragment[] | null>;
+ *   products: Promise<ProductCardFragment[] | null>;
  *   viewAll: {to: string; label: string};
  *   emptyState?: React.ReactNode;
  * }}
@@ -128,4 +131,4 @@ function CarouselSkeleton({label}) {
   );
 }
 
-/** @typedef {import('storefrontapi.generated').HomeProductFragment} HomeProductFragment */
+/** @typedef {import('storefrontapi.generated').ProductCardFragment} ProductCardFragment */

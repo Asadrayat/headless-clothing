@@ -240,3 +240,63 @@ export const FOOTER_QUERY = `#graphql
   }
   ${MENU_FRAGMENT}
 `;
+
+/**
+ * Everything `ProductCard` renders, including color swatches and the variant
+ * that quick add puts in the cart. Interpolate it into any query that lists
+ * products for cards.
+ *
+ * Variants for multi-option products (e.g. color × size) are not listed here;
+ * quick add loads them on demand from /api/products/:handle/variants.
+ */
+export const PRODUCT_CARD_FRAGMENT = `#graphql
+  fragment ProductCardImage on Image {
+    id
+    url
+    altText
+    width
+    height
+  }
+  fragment ProductCard on Product {
+    id
+    title
+    handle
+    availableForSale
+    priceRange {
+      minVariantPrice {
+        amount
+        currencyCode
+      }
+    }
+    images(first: 2) {
+      nodes {
+        ...ProductCardImage
+      }
+    }
+    selectedOrFirstAvailableVariant {
+      id
+      availableForSale
+      selectedOptions {
+        name
+        value
+      }
+    }
+    options(first: 3) {
+      name
+      optionValues {
+        id
+        name
+        swatch {
+          color
+        }
+        firstSelectableVariant {
+          id
+          availableForSale
+          image {
+            ...ProductCardImage
+          }
+        }
+      }
+    }
+  }
+`;
