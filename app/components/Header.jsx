@@ -11,7 +11,7 @@ import {useLocalizedPath} from '~/lib/i18n';
 export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
   const {shop, menu} = header;
   return (
-    <header className="sticky top-0 z-1 flex h-16 items-center gap-4 border-b border-line bg-paper px-4 md:gap-10">
+    <header className="sticky top-0 z-11 flex h-16 items-center gap-4 border-b border-line bg-paper px-20 md:gap-10">
       <HeaderMenuMobileToggle />
       <NavLink
         className="min-w-0 truncate text-lg font-semibold tracking-tight hover:no-underline md:text-xl"

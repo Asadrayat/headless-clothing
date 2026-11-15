@@ -169,7 +169,7 @@ export default function Homepage() {
   /** @type {LoaderReturnData} */
   const data = useLoaderData();
   return (
-    <div className="mx-auto w-full max-w-7xl pt-4">
+    <div className="mx-auto w-full  pt-4">
       {data.isShopLinked ? null : <MockShopNotice />}
       <Hero />
       <NewArrivals products={data.newArrivals} />
