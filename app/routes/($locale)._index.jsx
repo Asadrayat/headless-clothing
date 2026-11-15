@@ -3,7 +3,7 @@ import {MockShopNotice} from '~/components/MockShopNotice';
 import {BrandStrip} from '~/components/home/BrandStrip';
 import {CollectionTiles} from '~/components/home/CollectionTiles';
 import {Hero} from '~/components/home/Hero';
-import {NewArrivals} from '~/components/home/NewArrivals';
+import {ProductCarouselSection} from '~/components/home/ProductCarouselSection';
 import {localizePath} from '~/lib/i18n';
 import {pageTitle} from '~/lib/meta';
 
@@ -17,7 +17,11 @@ const SEO_DESCRIPTION =
  */
 const FEATURED_COLLECTION_HANDLES = ['polos', 'skorts', 'jackets', 'sunshirts'];
 const COLLECTION_TILE_COUNT = 4;
-const NEW_ARRIVAL_COUNT = 8;
+const NEW_ARRIVAL_COUNT = 20;
+
+/** The collection shown as its own carousel below New arrivals. */
+const SPOTLIGHT_COLLECTION_HANDLE = 'jackets';
+const SPOTLIGHT_COUNT = 20;
 
 /**
  * @type {Route.MetaFunction}
@@ -105,16 +109,29 @@ async function loadCriticalData({context, request}) {
  * @param {Route.LoaderArgs}
  */
 function loadDeferredData({context}) {
-  const newArrivals = context.storefront
-    .query(HOME_NEW_ARRIVALS_QUERY)
-    .then(({products}) => pickNewArrivals(products.nodes))
+  // One request feeds both carousels.
+  const homeProducts = context.storefront
+    .query(HOME_PRODUCTS_QUERY, {
+      variables: {spotlightHandle: SPOTLIGHT_COLLECTION_HANDLE},
+    })
     .catch((error) => {
       // Log query errors, but don't throw them so the page can still render
       console.error(error);
       return null;
     });
 
-  return {newArrivals};
+  return {
+    newArrivals: homeProducts.then((data) =>
+      data ? pickNewArrivals(data.newArrivals.nodes) : null,
+    ),
+    spotlightProducts: homeProducts.then((data) =>
+      data?.spotlight
+        ? data.spotlight.products.nodes
+            .filter((product) => product.images.nodes.length > 0)
+            .slice(0, SPOTLIGHT_COUNT)
+        : null,
+    ),
+  };
 }
 
 /**
@@ -172,9 +189,35 @@ export default function Homepage() {
     <div className="mx-auto w-full  pt-4">
       {data.isShopLinked ? null : <MockShopNotice />}
       <Hero />
-      <NewArrivals products={data.newArrivals} />
+      <ProductCarouselSection
+        description="The latest pieces, in stock now."
+        emptyState={<NewArrivalsEmpty />}
+        products={data.newArrivals}
+        title="New arrivals"
+        viewAll={{to: '/collections/all', label: 'View all products'}}
+      />
+      <ProductCarouselSection
+        description="Light layers for early tee times and breezy courts."
+        products={data.spotlightProducts}
+        title="Jackets"
+        viewAll={{
+          to: `/collections/${SPOTLIGHT_COLLECTION_HANDLE}`,
+          label: 'Shop all jackets',
+        }}
+      />
       <CollectionTiles collections={data.featuredCollections} />
       <BrandStrip />
+    </div>
+  );
+}
+
+function NewArrivalsEmpty() {
+  return (
+    <div className="rounded-xl border border-dashed px-6 py-12 text-center">
+      <p className="font-medium">Nothing new in stock right now.</p>
+      <p className="mt-1 text-sm text-muted">
+        Browse the full range while we restock.
+      </p>
     </div>
   );
 }
@@ -207,7 +250,7 @@ const HOME_COLLECTIONS_QUERY = `#graphql
   }
 `;
 
-const HOME_NEW_ARRIVALS_QUERY = `#graphql
+const HOME_PRODUCTS_QUERY = `#graphql
   fragment HomeProduct on Product {
     id
     title
@@ -228,10 +271,33 @@ const HOME_NEW_ARRIVALS_QUERY = `#graphql
         height
       }
     }
+    options(first: 3) {
+      name
+      optionValues {
+        id
+        name
+        swatch {
+          color
+        }
+        firstSelectableVariant {
+          id
+          image {
+            id
+            url
+            altText
+            width
+            height
+          }
+        }
+      }
+    }
   }
-  query HomeNewArrivals($country: CountryCode, $language: LanguageCode)
-    @inContext(country: $country, language: $language) {
-    products(
+  query HomeProducts(
+    $country: CountryCode
+    $language: LanguageCode
+    $spotlightHandle: String!
+  ) @inContext(country: $country, language: $language) {
+    newArrivals: products(
       first: 24
       sortKey: CREATED_AT
       reverse: true
@@ -239,6 +305,18 @@ const HOME_NEW_ARRIVALS_QUERY = `#graphql
     ) {
       nodes {
         ...HomeProduct
+      }
+    }
+    spotlight: collection(handle: $spotlightHandle) {
+      id
+      products(
+        first: 12
+        sortKey: COLLECTION_DEFAULT
+        filters: [{available: true}]
+      ) {
+        nodes {
+          ...HomeProduct
+        }
       }
     }
   }
