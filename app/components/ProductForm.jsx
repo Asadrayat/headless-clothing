@@ -1,6 +1,8 @@
-import {useEffect, useId, useRef, useState} from 'react';
+import {useState} from 'react';
 import {useNavigate} from 'react-router';
 import {Link} from '~/components/Link';
+import {ColorSwatch} from '~/components/ColorSwatch';
+import {getSwatchColors, isColorOption} from '~/lib/colors';
 import {AddToCartButton} from './AddToCartButton';
 import {useAside} from './Aside';
 
@@ -8,10 +10,9 @@ import {useAside} from './Aside';
  * @param {{
  *   productOptions: MappedProductOptions[];
  *   selectedVariant: ProductFragment['selectedOrFirstAvailableVariant'];
- *   fallbackImage?: ProductFragment['featuredImage'];
  * }}
  */
-export function ProductForm({productOptions, selectedVariant, fallbackImage}) {
+export function ProductForm({productOptions, selectedVariant}) {
   const {open} = useAside();
   return (
     <div className="product-form">
@@ -19,13 +20,7 @@ export function ProductForm({productOptions, selectedVariant, fallbackImage}) {
         // If there is only a single value in the option values, don't display the option
         if (option.optionValues.length === 1) return null;
 
-        return (
-          <ProductOptionSelect
-            key={option.name}
-            option={option}
-            fallbackImage={fallbackImage}
-          />
-        );
+        return <ProductOptionPills key={option.name} option={option} />;
       })}
       <AddToCartButton
         disabled={!selectedVariant || !selectedVariant.availableForSale}
@@ -51,202 +46,176 @@ export function ProductForm({productOptions, selectedVariant, fallbackImage}) {
 }
 
 /**
- * A collapsible option selector: the closed state shows the option name above
- * the selected value, and expanding it reveals the remaining values.
- * @param {{
- *   option: MappedProductOptions;
- *   fallbackImage?: ProductFragment['featuredImage'];
- * }}
+ * Renders every value of an option as a pill, with the selected value filled.
+ * Color options render as round swatches instead; the legend names the
+ * selected color, or the one being hovered.
+ * @param {{option: MappedProductOptions}}
  */
-function ProductOptionSelect({option, fallbackImage}) {
+function ProductOptionPills({option}) {
   const navigate = useNavigate();
-  const [expanded, setExpanded] = useState(false);
-  const panelId = useId();
-  const selectRef = useRef(null);
-  const toggleRef = useRef(null);
-
-  // Escape closes the open panel and hands focus back to its toggle, so focus
-  // isn't stranded on a value button that's about to be hidden.
-  useEffect(() => {
-    if (!expanded) return;
-    function handleKeyDown(event) {
-      if (event.key !== 'Escape') return;
-      if (!selectRef.current?.contains(document.activeElement)) return;
-      setExpanded(false);
-      toggleRef.current?.focus();
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [expanded]);
-
-  const selectedValue =
-    option.optionValues.find((value) => value.selected) ??
-    option.optionValues[0];
+  const [previewName, setPreviewName] = useState(
+    /** @type {string | null} */ (null),
+  );
+  const selectedValue = option.optionValues.find((value) => value.selected);
+  const isColor = isColorOption(option.name);
+  const headingValue = (isColor && previewName) || selectedValue?.name;
+  const pillClassName = isColor
+    ? 'product-option-pill product-option-pill--swatch'
+    : 'product-option-pill';
 
   return (
-    <div className="product-options" key={option.name}>
-      <div className="product-option-select" ref={selectRef}>
-        <button
-          ref={toggleRef}
-          type="button"
-          className="product-option-toggle"
-          aria-expanded={expanded}
-          aria-controls={panelId}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          <ProductOptionSwatch
-            image={optionValueImage(selectedValue, fallbackImage)}
-            color={selectedValue?.swatch?.color}
-            name={selectedValue?.name}
-          />
-          <span className="product-option-label">
-            <span className="product-option-label-name">{option.name}</span>
-            <span className="product-option-label-value">
-              {selectedValue?.name}
-            </span>
-          </span>
-          <Chevron />
-        </button>
+    <fieldset className="product-options">
+      <legend className="product-option-heading">
+        <span className="product-option-heading-name">{option.name}</span>
+        {headingValue && (
+          <span className="product-option-heading-value">{headingValue}</span>
+        )}
+      </legend>
 
-        <div className="product-option-values" id={panelId} hidden={!expanded}>
-          {option.optionValues.map((value) => {
-            const {
-              name,
-              handle,
-              variantUriQuery,
-              selected,
-              available,
-              exists,
-              isDifferentProduct,
-              swatch,
-            } = value;
+      <div
+        className="product-option-pills"
+        onMouseLeave={isColor ? () => setPreviewName(null) : undefined}
+      >
+        {option.optionValues.map((value) => {
+          const {
+            name,
+            handle,
+            variantUriQuery,
+            selected,
+            available,
+            exists,
+            isDifferentProduct,
+          } = value;
 
-            // The selected value already heads the list in the toggle above
-            if (selected) return null;
+          const shared = {
+            className: pillClassName,
+            'data-unavailable': !available,
+            ...(isColor && {
+              'aria-label': available ? name : `${name} (sold out)`,
+              title: name,
+              onMouseEnter: () => setPreviewName(name),
+              onFocus: () => setPreviewName(name),
+              onBlur: () => setPreviewName(null),
+            }),
+          };
 
-            const swatchElement = (
-              <>
-                <ProductOptionSwatch
-                  image={optionValueImage(value, fallbackImage)}
-                  color={swatch?.color}
-                  name={name}
-                />
-                <span className="product-option-label-value">{name}</span>
-              </>
-            );
+          const content = isColor ? (
+            <ColorOptionSwatch value={value} />
+          ) : (
+            <>
+              <ProductOptionSwatch value={value} />
+              <span>{name}</span>
+            </>
+          );
 
-            if (isDifferentProduct) {
-              // SEO
-              // When the variant is a combined listing child product
-              // that leads to a different url, we need to render it
-              // as an anchor tag
-              return (
-                <Link
-                  className="product-option-value"
-                  key={option.name + name}
-                  prefetch="intent"
-                  preventScrollReset
-                  replace
-                  to={`/products/${handle}?${variantUriQuery}`}
-                  data-unavailable={!available}
-                  onClick={() => setExpanded(false)}
-                >
-                  {swatchElement}
-                </Link>
-              );
-            }
-
+          if (isDifferentProduct) {
             // SEO
-            // When the variant is an update to the search param,
-            // render it as a button with javascript navigating to
-            // the variant so that SEO bots do not index these as
-            // duplicated links
+            // When the variant is a combined listing child product
+            // that leads to a different url, we need to render it
+            // as an anchor tag
             return (
-              <button
-                type="button"
-                className="product-option-value"
+              <Link
+                {...shared}
                 key={option.name + name}
-                data-unavailable={!available}
-                disabled={!exists}
-                onClick={() => {
-                  setExpanded(false);
-                  void navigate(`?${variantUriQuery}`, {
-                    replace: true,
-                    preventScrollReset: true,
-                  });
-                }}
+                prefetch="intent"
+                preventScrollReset
+                replace
+                to={`/products/${handle}?${variantUriQuery}`}
+                aria-current={selected ? 'true' : undefined}
               >
-                {swatchElement}
-              </button>
+                {content}
+              </Link>
             );
-          })}
-        </div>
+          }
+
+          // SEO
+          // When the variant is an update to the search param,
+          // render it as a button with javascript navigating to
+          // the variant so that SEO bots do not index these as
+          // duplicated links
+          return (
+            <button
+              {...shared}
+              type="button"
+              key={option.name + name}
+              aria-pressed={selected}
+              disabled={!exists}
+              onClick={() => {
+                if (selected) return;
+                void navigate(`?${variantUriQuery}`, {
+                  replace: true,
+                  preventScrollReset: true,
+                });
+              }}
+            >
+              {content}
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </fieldset>
   );
 }
 
 /**
- * Prefer the merchant-configured swatch media, then the image of the variant
- * this value maps to, and finally the product's featured image so a value is
- * never rendered without artwork.
- * @param {MappedProductOptions['optionValues'][number] | undefined} value
- * @param {ProductFragment['featuredImage']} [fallbackImage]
+ * The round swatch for a Color option value: the store's COLOR_HEX map first,
+ * then the merchant-configured Shopify swatch color or image, then the photo of
+ * the variant the value maps to, and finally ColorSwatch's hatch placeholder.
+ * @param {{value: MappedProductOptions['optionValues'][number]}}
  */
-function optionValueImage(value, fallbackImage) {
-  return (
-    value?.swatch?.image?.previewImage?.url ??
-    value?.firstSelectableVariant?.image?.url ??
-    fallbackImage?.url ??
-    null
-  );
-}
+function ColorOptionSwatch({value}) {
+  const {name, swatch, firstSelectableVariant} = value;
+  const hasColor = getSwatchColors(name, swatch?.color).length > 0;
+  const image =
+    swatch?.image?.previewImage?.url ?? firstSelectableVariant?.image?.url;
 
-/**
- * @param {{
- *   image?: string | null;
- *   color?: Maybe<string> | undefined;
- *   name?: string;
- * }}
- */
-function ProductOptionSwatch({image, color, name}) {
+  if (hasColor || !image) {
+    return <ColorSwatch name={name} shopifyColor={swatch?.color} />;
+  }
+
   return (
-    <span
-      className="product-option-swatch"
-      style={{backgroundColor: color || undefined}}
-    >
-      {!!image && <img src={image} alt="" loading="lazy" aria-hidden="true" />}
-      {!image && !color && (
-        <span className="product-option-swatch-initial">
-          {name?.trim().charAt(0)}
-        </span>
-      )}
+    <span className="product-option-swatch" aria-hidden="true">
+      <img src={thumbnailUrl(image)} alt="" loading="lazy" />
     </span>
   );
 }
 
-function Chevron() {
+/**
+ * A small dot inside a text pill, shown only when the merchant configured a
+ * Shopify swatch for the value.
+ * @param {{value: MappedProductOptions['optionValues'][number]}}
+ */
+function ProductOptionSwatch({value}) {
+  const {swatch} = value;
+  const image = swatch?.image?.previewImage?.url;
+  if (!image && !swatch?.color) return null;
+
   return (
-    <svg
-      className="product-option-chevron"
-      viewBox="0 0 20 20"
-      width="16"
-      height="16"
-      fill="none"
+    <span
+      className="product-option-swatch"
+      style={{backgroundColor: swatch?.color || undefined}}
       aria-hidden="true"
     >
-      <path
-        d="m5 8 5 5 5-5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      {!!image && <img src={thumbnailUrl(image)} alt="" loading="lazy" />}
+    </span>
   );
 }
 
+/**
+ * Ask the Shopify CDN for a small square crop rather than the full-size image.
+ * @param {string} url
+ */
+function thumbnailUrl(url) {
+  try {
+    const thumbnail = new URL(url);
+    thumbnail.searchParams.set('width', '96');
+    thumbnail.searchParams.set('height', '96');
+    thumbnail.searchParams.set('crop', 'center');
+    return thumbnail.toString();
+  } catch {
+    return url;
+  }
+}
+
 /** @typedef {import('@shopify/hydrogen').MappedProductOptions} MappedProductOptions */
-/** @typedef {import('@shopify/hydrogen/storefront-api-types').Maybe} Maybe */
-/** @typedef {import('@shopify/hydrogen/storefront-api-types').ProductOptionValueSwatch} ProductOptionValueSwatch */
 /** @typedef {import('storefrontapi.generated').ProductFragment} ProductFragment */

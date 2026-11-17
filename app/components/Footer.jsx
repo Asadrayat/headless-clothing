@@ -9,7 +9,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
   const shopName = header?.shop?.name;
 
   return (
-    <footer className="mt-auto px-20 bg-ink text-paper">
+    <footer className="mt-auto  px-4 lg:px-20 bg-ink text-paper">
       <div className="flex flex-col gap-6  py-10 md:flex-row md:items-start md:justify-between">
         {shopName && (
           <p className="text-lg font-semibold tracking-tight">{shopName}</p>
@@ -30,7 +30,7 @@ export function Footer({footer: footerPromise, header, publicStoreDomain}) {
         </Suspense>
       </div>
       {shopName && (
-        <p className="border-t border-paper/15 px-4 py-4 text-xs text-paper/70">
+        <p className="border-t border-paper/15 px-0 py-4 text-xs text-paper/70">
           © {new Date().getFullYear()} {shopName}
         </p>
       )}

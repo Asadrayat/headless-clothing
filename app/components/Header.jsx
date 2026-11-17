@@ -1,159 +1,108 @@
-import {Suspense} from 'react';
+import {Suspense, useEffect, useMemo, useState} from 'react';
 import {Await, useAsyncValue} from 'react-router';
 import {useAnalytics, useOptimisticCart} from '@shopify/hydrogen';
-import {NavLink} from '~/components/Link';
+import {Search, ShoppingBag, UserRound} from 'lucide-react';
+import {cn} from 'cn';
 import {useAside} from '~/components/Aside';
+import {NavLink} from '~/components/Link';
+import {DesktopNav} from '~/components/header/DesktopNav';
+import {MobileNav} from '~/components/header/MobileNav';
 import {useLocalizedPath} from '~/lib/i18n';
+import {buildNav} from '~/lib/menu';
+
+const ICON_BUTTON =
+  'relative inline-flex size-10 cursor-pointer items-center justify-center rounded-full text-ink/80 transition-colors duration-200 hover:bg-ink/6 hover:text-ink hover:no-underline';
 
 /**
+ * Sticky, floating glass header: menu (desktop dropdowns / mobile sheet), logo
+ * and search, account and cart buttons.
  * @param {HeaderProps}
  */
 export function Header({header, isLoggedIn, cart, publicStoreDomain}) {
   const {shop, menu} = header;
+  const primaryDomainUrl = shop.primaryDomain.url;
+  const items = useMemo(
+    () => buildNav(menu, {publicStoreDomain, primaryDomainUrl}),
+    [menu, publicStoreDomain, primaryDomainUrl],
+  );
+  const scrolled = useScrolled();
+
   return (
-    <header className="sticky top-0 z-11 flex h-16 items-center gap-4 border-b border-line bg-paper px-20 md:gap-10">
-      <HeaderMenuMobileToggle />
-      <NavLink
-        className="min-w-0 truncate text-lg font-semibold tracking-tight hover:no-underline md:text-xl"
-        end
-        prefetch="intent"
-        to="/"
+    <header
+      // The fade above the bar hides page content scrolling through the gap.
+      className="sticky top-0 z-40 px-3 pt-3 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-8 before:bg-linear-to-b before:from-paper before:from-40% before:to-transparent md:px-6 lg:px-16"
+    >
+      <div
+        className={cn(
+          'relative isolate mx-auto grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-2xl px-2 sm:px-4',
+          // The glass is a pseudo-element, not the bar itself: an element with
+          // backdrop-filter stops the dropdown inside it from blurring the page.
+          'before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:border before:border-ink/7 before:bg-white/65 before:shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_8px_32px_-16px_rgba(16,27,59,0.2)] before:backdrop-blur-xl before:backdrop-saturate-150 before:transition-[background-color,box-shadow] before:duration-300',
+          scrolled &&
+            'before:bg-white/78 before:shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_16px_40px_-16px_rgba(16,27,59,0.3)]',
+        )}
       >
-        {shop.name}
-      </NavLink>
-      <HeaderMenu
-        menu={menu}
-        viewport="desktop"
-        primaryDomainUrl={header.shop.primaryDomain.url}
-        publicStoreDomain={publicStoreDomain}
-      />
-      <HeaderCtas isLoggedIn={isLoggedIn} cart={cart} />
+        <MobileNav
+          isLoggedIn={isLoggedIn}
+          items={items}
+          shopName={shop.name}
+          triggerClassName={cn(ICON_BUTTON, 'justify-self-start')}
+        />
+        <Logo shop={shop} />
+        <DesktopNav items={items} />
+        <div className="flex items-center justify-end gap-0.5">
+          <SearchButton />
+          <NavLink
+            aria-label="Account"
+            className={cn(ICON_BUTTON, 'hidden sm:inline-flex')}
+            prefetch="intent"
+            title="Account"
+            to="/account"
+          >
+            <UserRound aria-hidden="true" className="size-5" />
+          </NavLink>
+          <CartToggle cart={cart} />
+        </div>
+      </div>
     </header>
   );
 }
 
-/**
- * @param {{
- *   menu: HeaderProps['header']['menu'];
- *   primaryDomainUrl: HeaderProps['header']['shop']['primaryDomain']['url'];
- *   viewport: Viewport;
- *   publicStoreDomain: HeaderProps['publicStoreDomain'];
- * }}
- */
-export function HeaderMenu({
-  menu,
-  primaryDomainUrl,
-  viewport,
-  publicStoreDomain,
-}) {
-  const {close} = useAside();
-  const className =
-    viewport === 'desktop'
-      ? 'hidden items-center gap-6 text-sm md:flex'
-      : 'flex flex-col gap-4 text-lg';
-
+/** @param {{shop: HeaderQuery['shop']}} */
+function Logo({shop}) {
+  const logo = shop.brand?.logo?.image?.url;
   return (
-    <nav className={className} aria-label="Main">
-      {viewport === 'mobile' && (
-        <NavLink
-          className={menuLinkClassName}
-          end
-          onClick={close}
-          prefetch="intent"
-          to="/"
-        >
-          Home
-        </NavLink>
+    <NavLink
+      className="justify-self-center truncate px-2 text-lg font-semibold tracking-tight text-ink hover:no-underline lg:justify-self-start lg:text-xl"
+      end
+      prefetch="intent"
+      to="/"
+    >
+      {logo ? (
+        <img alt={shop.name} className="h-7 w-auto" src={logo} />
+      ) : (
+        shop.name
       )}
-      {(menu || FALLBACK_HEADER_MENU).items.map((item) => {
-        if (!item.url) return null;
-
-        // if the url is internal, we strip the domain
-        const url =
-          item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
-            ? new URL(item.url).pathname
-            : item.url;
-        return (
-          <NavLink
-            className={menuLinkClassName}
-            end
-            key={item.id}
-            onClick={close}
-            prefetch="intent"
-            to={url}
-          >
-            {item.title}
-          </NavLink>
-        );
-      })}
-    </nav>
+    </NavLink>
   );
 }
 
-/**
- * @param {Pick<HeaderProps, 'isLoggedIn' | 'cart'>}
- */
-function HeaderCtas({isLoggedIn, cart}) {
-  return (
-    <nav
-      className="ml-auto flex items-center gap-4 text-sm md:gap-6"
-      aria-label="Account and cart"
-    >
-      <NavLink
-        className={({isActive, isPending}) =>
-          `${menuLinkClassName({isActive, isPending})} flex items-center`
-        }
-        prefetch="intent"
-        to="/account"
-      >
-        <UserIcon />
-        <span className="sr-only md:not-sr-only">
-          <Suspense fallback="Sign in">
-            <Await resolve={isLoggedIn} errorElement="Sign in">
-              {(isLoggedIn) => (isLoggedIn ? 'Account' : 'Sign in')}
-            </Await>
-          </Suspense>
-        </span>
-      </NavLink>
-      <SearchToggle />
-      <CartToggle cart={cart} />
-    </nav>
-  );
-}
-
-function HeaderMenuMobileToggle() {
+function SearchButton() {
   const {open} = useAside();
   return (
     <button
-      aria-label="Open menu"
-      className="-ml-1 flex size-9 items-center justify-center md:hidden"
-      onClick={() => open('mobile')}
-      type="button"
-    >
-      <MenuIcon />
-    </button>
-  );
-}
-
-function SearchToggle() {
-  const {open} = useAside();
-  return (
-    <button
-      className="flex items-center hover:underline"
+      aria-label="Search"
+      className={ICON_BUTTON}
       onClick={() => open('search')}
+      title="Search"
       type="button"
     >
-      <SearchIcon />
-      <span className="sr-only md:not-sr-only">Search</span>
+      <Search aria-hidden="true" className="size-5" />
     </button>
   );
 }
 
-/**
- * @param {{count: number}}
- */
+/** @param {{count: number}} */
 function CartBadge({count}) {
   const {open} = useAside();
   const {publish, shop, cart, prevCart} = useAnalytics();
@@ -161,10 +110,11 @@ function CartBadge({count}) {
 
   return (
     <a
-      className="group flex items-center gap-1.5 hover:no-underline"
+      aria-label={`Cart, ${count} ${count === 1 ? 'item' : 'items'}`}
+      className={ICON_BUTTON}
       href={localize('/cart')}
-      onClick={(e) => {
-        e.preventDefault();
+      onClick={(event) => {
+        event.preventDefault();
         open('cart');
         publish('cart_viewed', {
           cart,
@@ -173,22 +123,23 @@ function CartBadge({count}) {
           url: window.location.href || '',
         });
       }}
+      title="Cart"
     >
-      <BagIcon />
-      <span className="sr-only group-hover:underline md:not-sr-only">Cart</span>
-      <span
-        aria-label={`(items: ${count})`}
-        className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo px-1.5 text-xs font-medium text-paper tabular-nums"
-      >
-        {count}
-      </span>
+      <ShoppingBag aria-hidden="true" className="size-5" />
+      {count > 0 ? (
+        <span
+          aria-hidden="true"
+          className="absolute top-0.5 right-0.5 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-paper tabular-nums ring-2 ring-white animate-in zoom-in-50"
+          key={count}
+        >
+          {count}
+        </span>
+      ) : null}
     </a>
   );
 }
 
-/**
- * @param {Pick<HeaderProps, 'cart'>}
- */
+/** @param {Pick<HeaderProps, 'cart'>} */
 function CartToggle({cart}) {
   return (
     <Suspense fallback={<CartBadge count={0} />}>
@@ -206,152 +157,20 @@ function CartBanner() {
 }
 
 /**
- * The active page gets an indigo underline rather than bold text, so the
- * menu doesn't shift width as you navigate.
- * @param {{isActive: boolean; isPending: boolean}}
+ * Whether the page has scrolled past `threshold`. Re-renders only when that
+ * flips, not on every scroll event.
  */
-function menuLinkClassName({isActive, isPending}) {
-  return [
-    'decoration-2 underline-offset-[6px]',
-    isActive ? 'underline decoration-indigo' : 'hover:decoration-line',
-    isPending ? 'opacity-60' : '',
-  ].join(' ');
+function useScrolled(threshold = 8) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > threshold);
+    update();
+    window.addEventListener('scroll', update, {passive: true});
+    return () => window.removeEventListener('scroll', update);
+  }, [threshold]);
+  return scrolled;
 }
 
-/** Icons are shown on small screens, where the text labels collapse. */
-function MenuIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height="22"
-      viewBox="0 0 22 22"
-      width="22"
-    >
-      <path
-        d="M3 6h16M3 11h16M3 16h16"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="md:hidden"
-      fill="none"
-      height="20"
-      viewBox="0 0 20 20"
-      width="20"
-    >
-      <circle
-        cx="8.5"
-        cy="8.5"
-        r="5.75"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path d="m13 13 4.5 4.5" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="md:hidden"
-      fill="none"
-      height="20"
-      viewBox="0 0 20 20"
-      width="20"
-    >
-      <circle
-        cx="10"
-        cy="6.5"
-        r="3.75"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M3 18c.8-3.4 3.6-5.5 7-5.5s6.2 2.1 7 5.5"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-function BagIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="md:hidden"
-      fill="none"
-      height="20"
-      viewBox="0 0 20 20"
-      width="20"
-    >
-      <path
-        d="M4 6.5h12l-1 11H5l-1-11Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-      <path
-        d="M7 8V5.5a3 3 0 0 1 6 0V8"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
-    </svg>
-  );
-}
-
-const FALLBACK_HEADER_MENU = {
-  id: 'gid://shopify/Menu/199655587896',
-  items: [
-    {
-      id: 'gid://shopify/MenuItem/461609500728',
-      resourceId: null,
-      tags: [],
-      title: 'Collections',
-      type: 'HTTP',
-      url: '/collections',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609533496',
-      resourceId: null,
-      tags: [],
-      title: 'Blog',
-      type: 'HTTP',
-      url: '/blogs/journal',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609566264',
-      resourceId: null,
-      tags: [],
-      title: 'Policies',
-      type: 'HTTP',
-      url: '/policies',
-      items: [],
-    },
-    {
-      id: 'gid://shopify/MenuItem/461609599032',
-      resourceId: 'gid://shopify/Page/92591030328',
-      tags: [],
-      title: 'About',
-      type: 'PAGE',
-      url: '/pages/about',
-      items: [],
-    },
-  ],
-};
-
-/** @typedef {'desktop' | 'mobile'} Viewport */
 /**
  * @typedef {Object} HeaderProps
  * @property {HeaderQuery} header
@@ -360,6 +179,5 @@ const FALLBACK_HEADER_MENU = {
  * @property {string} publicStoreDomain
  */
 
-/** @typedef {import('@shopify/hydrogen').CartViewPayload} CartViewPayload */
 /** @typedef {import('storefrontapi.generated').HeaderQuery} HeaderQuery */
 /** @typedef {import('storefrontapi.generated').CartApiQueryFragment} CartApiQueryFragment */

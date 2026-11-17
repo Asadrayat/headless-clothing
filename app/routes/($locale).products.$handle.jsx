@@ -130,7 +130,6 @@ export default function Product() {
         <ProductForm
           productOptions={productOptions}
           selectedVariant={selectedVariant}
-          fallbackImage={product.featuredImage}
         />
         <br />
         <br />

@@ -182,6 +182,17 @@ const MENU_FRAGMENT = `#graphql
   }
   fragment ChildMenuItem on MenuItem {
     ...MenuItem
+    # Collection image, previewed in the header's desktop dropdown.
+    resource {
+      ... on Collection {
+        image {
+          url
+          altText
+          width
+          height
+        }
+      }
+    }
   }
   fragment ParentMenuItem on MenuItem {
     ...MenuItem
