@@ -39,7 +39,7 @@ async function loadCriticalData({context, params, request}) {
   const {handle} = params;
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 9,
   });
 
   if (!handle) {
@@ -94,7 +94,7 @@ export default function Collection() {
         {({node: product, index}) => (
           <ProductCard
             key={product.id}
-            loading={index < 8 ? 'eager' : undefined}
+            loading={index < 9 ? 'eager' : undefined}
             product={product}
             sizes={GRID_IMAGE_SIZES}
           />

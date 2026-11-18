@@ -36,7 +36,7 @@ export async function loader(args) {
 async function loadCriticalData({context, request}) {
   const {storefront} = context;
   const paginationVariables = getPaginationVariables(request, {
-    pageBy: 8,
+    pageBy: 9,
   });
 
   const [{products}] = await Promise.all([
@@ -72,7 +72,7 @@ export default function Collection() {
         {({node: product, index}) => (
           <ProductCard
             key={product.id}
-            loading={index < 8 ? 'eager' : undefined}
+            loading={index < 9 ? 'eager' : undefined}
             product={product}
             sizes={GRID_IMAGE_SIZES}
           />
