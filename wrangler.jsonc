@@ -1,0 +1,18 @@
+// Cloudflare Workers deploy for the public demo link.
+// Run `npm run build` first, then `npm run deploy:cf`.
+// The app's variables (SESSION_SECRET, PUBLIC_STORE_DOMAIN, ...) are stored as
+// Worker secrets with `wrangler secret bulk`, so they are not written here.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "headless-clothing",
+  "main": "dist/server/index.js",
+  // Match the date Hydrogen targets for Oxygen (dist/server/oxygen.json).
+  "compatibility_date": "2025-04-01",
+  "assets": {
+    "directory": "dist/client"
+  },
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  }
+}
