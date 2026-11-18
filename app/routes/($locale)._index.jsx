@@ -189,6 +189,7 @@ export default function Homepage() {
   return (
     <div className="mx-auto w-full  pt-4">
       {data.isShopLinked ? null : <MockShopNotice />}
+      <h1>Hello</h1>
       <Hero />
       <ProductCarouselSection
         description="The latest pieces, in stock now."
