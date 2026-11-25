@@ -40,6 +40,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ['.tryhydrogen.dev', 'rehabilitation-pensions-chapel-compounds.trycloudflare.com'],
+    allowedHosts: ['.tryhydrogen.dev', '.trycloudflare.com'],
   },
 });
